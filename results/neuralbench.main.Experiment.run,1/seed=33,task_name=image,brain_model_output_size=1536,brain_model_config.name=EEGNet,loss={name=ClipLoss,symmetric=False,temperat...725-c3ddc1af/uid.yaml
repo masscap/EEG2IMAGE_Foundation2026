@@ -1,0 +1,119 @@
+task_name: image
+data:
+  study.steps:
+  - name: Xu2025Alljoined
+    query: subject_index < 5
+  - name: QueryEvents
+    query: type != 'Image' or label in ['stim_train', 'stim_test']
+  - name: PredefinedSplit
+    test_split_query: label == 'stim_test'
+  neuro:
+    name: EegExtractor
+    frequency: 120.0
+    baseline:
+    - 0.0
+    - 0.2
+    filter:
+    - 0.1
+    - 75.0
+    notch_filter:
+    - 50.0
+    - 60.0
+    scaler: RobustScaler
+    clamp: 20.0
+  target:
+    name: HuggingFaceImage
+    model_name: facebook/dinov2-giant
+    layers: 0.6667
+    aggregation: trigger
+    imsize: 518
+  channel_positions:
+    name: ChannelPositions
+    n_spatial_dims: 3
+  trigger_event_type: Image
+  start: -0.2
+  duration: 1.0
+  batch_size: 8
+  seed: 33
+  summary_columns:
+  - filepath
+brain_model_config.name: EEGNet
+brain_model_output_size: 1536
+trainer_config:
+  n_epochs: 2
+  gradient_clip_val: 1.0
+  limit_train_batches: 5
+  limit_val_batches: 5
+  num_sanity_val_steps: 0
+  monitor: val/batch_top5_acc
+  mode: max
+loss:
+  name: ClipLoss
+  temperature: false
+  symmetric: false
+lightning_optimizer_config:
+  name: LightningOptimizer
+  optimizer:
+    name: AdamW
+    lr: 0.0001
+    kwargs.weight_decay: 0.05
+metrics:
+- name: Rank
+  log_name: batch_median_rank
+- name: Rank
+  log_name: batch_mean_rank
+  reduction: mean
+- name: Rank
+  log_name: batch_std_rank
+  reduction: std
+- name: TopkAcc
+  log_name: batch_top1_acc
+  topk: 1
+- name: TopkAcc
+  log_name: batch_top5_acc
+- name: TopkAcc
+  log_name: batch_top10_acc
+  topk: 10
+- name: OnlinePearsonCorr
+  log_name: batch_pearson_corr
+  dim: 0
+test_full_retrieval_metrics:
+- name: Rank
+  log_name: median_retrieval_rank
+- name: Rank
+  log_name: median_retrieval_rank_subject-ind
+- name: Rank
+  log_name: mean_retrieval_rank
+  reduction: mean
+- name: Rank
+  log_name: std_retrieval_rank
+  reduction: std
+- name: Rank
+  log_name: median_retrieval_rank_instance-agg
+- name: Rank
+  log_name: median_retrieval_rank_subject-agg
+- name: TopkAcc
+  log_name: top1_acc
+  topk: 1
+- name: TopkAcc
+  log_name: top1_acc_instance-agg
+  topk: 1
+- name: TopkAcc
+  log_name: top1_acc_subject-agg
+  topk: 1
+- name: TopkAcc
+  log_name: top5_acc
+- name: TopkAcc
+  log_name: top5_acc_instance-agg
+- name: TopkAcc
+  log_name: top5_acc_subject-agg
+- name: TopkAcc
+  log_name: top10_acc
+  topk: 10
+- name: TopkAcc
+  log_name: top10_acc_instance-agg
+  topk: 10
+- name: TopkAcc
+  log_name: top10_acc_subject-agg
+  topk: 10
+seed: 33
